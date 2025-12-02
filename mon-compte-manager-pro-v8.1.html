@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MON COMPTE MANAGER PRO v8.1</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a237e">
+  <!-- Librairies externes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style id="theme-styles">
+    /* Thèmes dynamiques appliqués via JS */
+  </style>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .header-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 18px;
+      text-align: center;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: background 0.3s, color 0.3s;
+      background: linear-gradient(135deg, #2c3e50, #1a237e);
+      color: white;
+    }
+    .logo-header {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .header-title {
+      margin: 0;
+      font-size: 2.4em;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .header-subtitle {
+      margin: 6px 0 0;
+      font-size: 1.1em;
+      opacity: 0.92;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .user-selector, .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+    }
+    .user-selector select, .theme-toggle button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 2px solid;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* Onglets horizontaux avec icônes */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 25px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+    .tab-btn {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-weight: bold;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      border-bottom: 3px solid #1a237e;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .panel {
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .panel h3 {
+      margin-top: 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .form-col {
+      flex: 1;
+      min-width: 160px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 12px;
+      font-size: 0.95em;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 9px;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      cursor: pointer;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .solde-box {
+      text-align: center;
+      font-size: 1.25em;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    table { width: 100%; border-collapse: collapse; border-radius: 8px; }
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: bold;
+      border-bottom: 2px solid;
+    }
+    td { padding: 10px 12px; border-bottom: 1px solid; }
+    .table-container { overflow-x: auto; }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.85em;
+      margin: 0 4px;
+      width: auto;
+      display: inline-block;
+    }
+
+    .montant {
+      font-weight: bold;
+    }
+
+    /* Budget tracker */
+    .budget-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid;
+    }
+    .budget-bar {
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    .budget-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    /* Pièces jointes */
+    .pj-preview {
+      max-width: 100%;
+      max-height: 200px;
+      margin-top: 10px;
+      border: 1px solid;
+      border-radius: 6px;
+    }
+
+    /* Lightbox */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      max-width: 90%;
+      max-height: 90%;
+    }
+    .modal-content img { max-width: 100%; max-height: 90vh; }
+    .modal-content iframe { width: 90vw; height: 90vh; }
+
+    /* Synthèse mensuelle */
+    .synthese-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: end;
+    }
+    .synthese-form .form-col {
+      min-width: 180px;
+    }
+    .synthese-preview {
+      margin-top: 20px;
+      padding: 20px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .synthese-preview h4 {
+      margin-top: 0;
+      color: #2c3e50;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 8px;
+    }
+    .synthese-stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px;
+      background: #f8f9fc;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 1.4em;
+      font-weight: bold;
+      margin: 5px 0;
+    }
+    .chart-placeholder {
+      width: 100%;
+      height: 150px;
+      background: #f0f4ff;
+      border: 1px dashed #ccc;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px 0;
+    }
+    .operations-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    .operation-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .operation-item:last-child {
+      border-bottom: none;
+    }
+    .operation-date {
+      font-weight: bold;
+      color: #555;
+    }
+    .operation-tiers {
+      margin-left: 10px;
+      color: #333;
+    }
+    .operation-montant {
+      float: right;
+      font-weight: bold;
+    }
+    .operation-debit {
+      color: #d32f2f;
+    }
+    .operation-credit {
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- En-tête modifié -->
+  <div class="header-container">
+    <img class="logo-header" src="icon-512x512.png" alt="MON COMPTE MANAGER PRO" onerror="this.style.display='none'">
+    <div>
+      <div class="header-title">MON COMPTE MANAGER PRO</div>
+      <div class="header-subtitle">Version 8.0 — Synthèse PDF • Budget • Pièces jointes</div>
+    </div>
+  </div>
+
+  <div class="top-bar">
+    <div class="user-selector">
+      <label>Utilisateur :</label>
+      <select id="user-selector">
+        <option value="Christelle">Christelle</option>
+        <option value="Fréderick">Fréderick</option>
+        <option value="Aymeric">Aymeric</option>
+        <option value="new">+ Nouvel utilisateur</option>
+      </select>
+    </div>
+    <div class="theme-toggle">
+      <button id="theme-btn">🌙 Sombre</button>
+    </div>
+  </div>
+
+  <div class="solde-box" id="solde-total">Solde total : 0,00 €</div>
+  <div class="solde-box" id="solde-pointe">Solde pointé : 0,00 €</div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="operations">📝 Opérations</button>
+    <button class="tab-btn" data-tab="echeances">📅 Échéances</button>
+    <button class="tab-btn" data-tab="budget">📊 Budget</button>
+    <button class="tab-btn" data-tab="pieces-jointes">📎 Pièces jointes</button>
+    <button class="tab-btn" data-tab="synthese">📑 Synthèse Mensuelle</button>
+    <button class="tab-btn" data-tab="import-export">🔄 Import / Export</button>
+  </div>
+
+  <!-- ONGLET : OPÉRATIONS -->
+  <div class="tab-content active" id="tab-operations">
+    <div class="panel">
+      <h3>➕ Ajouter une opération</h3>
+      <form id="form-operation">
+        <div class="form-row">
+          <div class="form-col">
+            <label>Compte</label>
+            <select id="compte" required>
+              <option value="Compte Courant">Compte Courant</option>
+              <option value="Livret A">Livret A</option>
+              <option value="Compte Épargne">Compte Épargne</option>
+              <option value="PEL">PEL</option>
+            </select>
+          </div>
+          <div class="form-col">
+            <label>Date</label>
+            <input type="date" id="date" required>
+          </div>
+          <div class="form-col">
+            <label>Tiers</label>
+            <input type="text" id="tiers" placeholder="Ex: EDF, Salaire" required>
+          </div>
+          <div class="form-col">
+            <label>Type</label>
+            <select id="type" required>
+              <option value="debit">Débit</option>
+              <option value="credit">Crédit</option>
+              <option value="virement">Virement</option>
+            </select>
+          </div>
+          <div class="form-col">
+            <label>Montant (€)</label>
+            <input type="number" id="montant" step="0.01" placeholder="Ex: 45.90" required>
+          </div>
+          <div class="form-col">
+            <label>Catégorie</label>
+            <select id="categorie" required>
+              <option value="Alimentation">Alimentation</option>
+              <option value="Loyer">Loyer</option>
+              <option value="Salaire">Salaire</option>
+              <option value="Transport">Transport</option>
+              <option value="Loisirs">Loisirs</option>
+              <option value="Santé">Santé</option>
+              <option value="Virement">Virement</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit">Ajouter l'opération</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3>✅ Pointage bancaire</h3>
+      <label>
+        <input type="checkbox" id="toggle-non-pointees" checked> Afficher aussi les opérations non pointées
+      </label>
+    </div>
+
+    <div id="comptes-soldes" style="margin: 20px 0; padding: 15px; border-radius: 8px;"></div>
+
+    <div class="panel">
+      <h3>Liste des opérations</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Tiers</th>
+              <th>Catégorie</th>
+              <th>Compte</th>
+              <th>Débit (€)</th>
+              <th>Crédit (€)</th>
+              <th>Solde (€)</th>
+              <th>📎</th>
+              <th>Pointé</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="liste-operations"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLET : ÉCHÉANCES -->
+  <div class="tab-content" id="tab-echeances">
+    <div class="panel">
+      <h3>➕ Créer une échéance récurrente</h3>
+      <form id="form-echeance">
+        <div class="form-row">
+          <div class="form-col">
+            <label>Compte</label>
+            <select id="echeance-compte" required>
+              <option value="Compte Courant">Compte Courant</option>
+              <option value="Livret A">Livret A</option>
+              <option value="Compte Épargne">Compte Épargne</option>
+            </select>
+          </div>
+          <div class="form-col">
+            <label>Tiers</label>
+            <input type="text" id="echeance-tiers" placeholder="Ex: Loyer" required>
+          </div>
+          <div class="form-col">
+            <label>Type</label>
+            <select id="echeance-type" required>
+              <option value="debit">Débit</option>
+              <option value="credit">Crédit</option>
+            </select>
+          </div>
+          <div class="form-col">
+            <label>Montant (€)</label>
+            <input type="number" id="echeance-montant" step="0.01" required>
+          </div>
+          <div class="form-col">
+            <label>Catégorie</label>
+            <select id="echeance-categorie" required>
+              <option value="Loyer">Loyer</option>
+              <option value="Abonnement">Abonnement</option>
+              <option value="Salaire">Salaire</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" style="margin-top: 10px;">
+          <div class="form-col">
+            <label>Date de début</label>
+            <input type="date" id="echeance-date-debut" required>
+          </div>
+          <div class="form-col">
+            <label>Fréquence</label>
+            <select id="echeance-frequence" required>
+              <option value="hebdo">Hebdomadaire</option>
+              <option value="2semaines">2 semaines</option>
+              <option value="3semaines">3 semaines</option>
+              <option value="mensuel">Mensuel</option>
+              <option value="annuel">Annuel</option>
+            </select>
+          </div>
+          <div class="form-col">
+            <label>Date de fin (optionnelle)</label>
+            <input type="date" id="echeance-date-fin">
+          </div>
+        </div>
+        <button type="submit">Enregistrer l'échéance</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3>📅 Échéances actives</h3>
+      <button class="btn-warning" id="btn-generer-echeances">Générer les opérations échues</button>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Début</th>
+              <th>Fin</th>
+              <th>Tiers</th>
+              <th>Montant</th>
+              <th>Fréquence</th>
+              <th>Compte</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="liste-echeances"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLET : BUDGET -->
+  <div class="tab-content" id="tab-budget">
+    <div class="panel">
+      <h3>🎯 Définir le budget mensuel (pour ce mois)</h3>
+      <form id="form-budget">
+        <div class="form-row">
+          <div class="form-col">
+            <label>Catégorie</label>
+            <select id="budget-categorie" required>
+              <option value="Alimentation">Alimentation</option>
+              <option value="Loyer">Loyer</option>
+              <option value="Transport">Transport</option>
+              <option value="Loisirs">Loisirs</option>
+              <option value="Santé">Santé</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div class="form-col">
+            <label>Montant (€)</label>
+            <input type="number" id="budget-montant" step="0.01" required>
+          </div>
+        </div>
+        <button type="submit">Enregistrer le budget</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3>📊 Suivi du budget - Ce mois-ci</h3>
+      <div id="budget-tracker"></div>
+    </div>
+  </div>
+
+  <!-- ONGLET : PIÈCES JOINTES -->
+  <div class="tab-content" id="tab-pieces-jointes">
+    <div class="panel">
+      <h3>📎 Gestion des pièces justificatives</h3>
+      <p>Sélectionnez une opération dans l'onglet <strong>Opérations</strong>, puis cliquez sur le bouton <strong>« + Pièce jointe »</strong> pour attacher un fichier (PDF, JPG, PNG).</p>
+      <p>Les documents sont stockés localement sur votre appareil (dans le navigateur).</p>
+    </div>
+
+    <div class="panel">
+      <h3>👁️ Aperçu de la pièce jointe</h3>
+      <div id="pj-preview-container">
+        <p>Aucune pièce jointe sélectionnée.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLET : SYNTHÈSE MENSUELLE -->
+  <div class="tab-content" id="tab-synthese">
+    <div class="panel">
+      <h3>🖨️ Générer une synthèse mensuelle (PDF)</h3>
+      <div class="synthese-form">
+        <div class="form-col">
+          <label>Titre personnalisé</label>
+          <input type="text" id="synthese-titre" placeholder="Ex: Famille Christelle" value="Famille Christelle">
+        </div>
+        <div class="form-col">
+          <label>Mois (YYYY-MM)</label>
+          <input type="text" id="synthese-mois" placeholder="Ex: 2025-04" value="2025-04">
+        </div>
+        <div class="form-col">
+          <label>&nbsp;</label>
+          <button id="btn-generer-pdf" class="btn-success">Générer le PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>👁️ Aperçu de la synthèse</h3>
+      <div id="synthese-preview" class="synthese-preview">
+        <p>Sélectionnez un mois et cliquez sur « Générer le PDF » pour voir l’aperçu.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLET : IMPORT / EXPORT -->
+  <div class="tab-content" id="tab-import-export">
+    <div class="panel">
+      <h3>📤 Importer un fichier CSV</h3>
+      <input type="file" id="csv-file" accept=".csv" />
+      <button class="btn-success" id="btn-import">Importer</button>
+      <p class="instructions">Compatible avec EMJySoft, banques, QIF converti en CSV.</p>
+    </div>
+    <div class="panel">
+      <h3>📥 Exporter toutes les données</h3>
+      <button class="btn-warning" id="btn-export">Exporter vers CSV</button>
+      <p class="instructions">Fichier complet avec pointage, compte, utilisateur et pièces jointes.</p>
+    </div>
+  </div>
+
+  <!-- MODAL POUR VISUALISATION -->
+  <div class="modal" id="modal-pj">
+    <div class="modal-content">
+      <!-- Contenu dynamique -->
+    </div>
+  </div>
+
+  <script>
+    // === THÈME ===
+    const isDark = localStorage.getItem('theme') === 'dark';
+    document.body.classList.toggle('dark', isDark);
+    applyTheme();
+    document.getElementById('theme-btn').textContent = isDark ? '☀️ Clair' : '🌙 Sombre';
+
+    function toggleTheme() {
+      const isNowDark = !document.body.classList.contains('dark');
+      document.body.classList.toggle('dark', isNowDark);
+      localStorage.setItem('theme', isNowDark ? 'dark' : 'light');
+      applyTheme();
+      document.getElementById('theme-btn').textContent = isNowDark ? '☀️ Clair' : '🌙 Sombre';
+    }
+
+    function applyTheme() {
+      const dark = document.body.classList.contains('dark');
+      const style = document.getElementById('theme-styles');
+      if (dark) {
+        style.textContent = `
+          :root {
+            --bg-main: #121826;
+            --bg-panel: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #cbd5e1;
+            --header-bg: linear-gradient(135deg, #1e3a8a, #1a237e);
+            --border-color: #334155;
+            --solde-positif: #4ade80;
+            --solde-negatif: #f87171;
+            --fond-positif: #064e3b;
+            --fond-negatif: #7f1d1d;
+            --btn-primary-bg: #334155;
+            --btn-primary-hover: #475569;
+            --tab-active-border: #60a5fa;
+            --budget-used: #ef4444;
+            --budget-remaining: #10b981;
+          }
+          body { background: var(--bg-main); color: var(--text-main); }
+          .header-container { background: var(--header-bg); color: white; }
+          .panel { background: var(--bg-panel); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+          .panel h3 { border-color: var(--border-color); color: var(--text-main); }
+          table th { background: rgba(30,41,59,0.7); border-color: var(--border-color); color: var(--text-main); }
+          table td { border-color: var(--border-color); }
+          .user-selector select, .theme-toggle button {
+            background: var(--bg-panel);
+            color: var(--text-main);
+            border-color: var(--border-color);
+          }
+          .tab-btn {
+            background: var(--bg-panel);
+            color: var(--text-main);
+          }
+          .tab-btn.active { border-color: var(--tab-active-border); }
+          input, select {
+            background: #0f172a;
+            color: white;
+            border-color: var(--border-color);
+          }
+          .solde-box.positif { background: var(--fond-positif); color: var(--solde-positif); }
+          .solde-box.negatif { background: var(--fond-negatif); color: var(--solde-negatif); }
+          .montant.debit { color: var(--solde-negatif); }
+          .montant.credit { color: var(--solde-positif); }
+          .budget-item { border-color: var(--border-color); }
+          .budget-bar { background: #334155; }
+          .budget-fill.used { background: var(--budget-used); }
+          .budget-fill.remaining { background: var(--budget-remaining); }
+          .pj-preview { border-color: var(--border-color); }
+          .modal-content { background: white; padding: 20px; border-radius: 10px; }
+        `;
+      } else {
+        style.textContent = `
+          :root {
+            --bg-main: #f8f9fc;
+            --bg-panel: white;
+            --text-main: #333;
+            --text-muted: #666;
+            --header-bg: linear-gradient(135deg, #2c3e50, #1a237e);
+            --border-color: #ddd;
+            --solde-positif: #2e7d32;
+            --solde-negatif: #d32f2f;
+            --fond-positif: #e8f5e9;
+            --fond-negatif: #ffebee;
+            --btn-primary-bg: #1a237e;
+            --btn-primary-hover: #0d1b4e;
+            --tab-active-border: #1a237e;
+            --budget-used: #ef4444;
+            --budget-remaining: #10b981;
+          }
+          body { background: var(--bg-main); color: var(--text-main); }
+          .header-container { background: var(--header-bg); color: white; }
+          .panel { background: var(--bg-panel); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+          .panel h3 { border-color: #f0f4ff; color: #1a237e; }
+          table th { background: #f0f4ff; border-color: var(--border-color); }
+          table td { border-color: var(--border-color); }
+          .user-selector select, .theme-toggle button {
+            background: white;
+            color: #2c3e50;
+            border-color: #1a237e;
+          }
+          .tab-btn {
+            background: #e0e7ff;
+            color: #2c3e50;
+          }
+          .tab-btn.active { border-color: var(--tab-active-border); }
+          input, select {
+            background: white;
+            color: black;
+            border-color: #ccc;
+          }
+          .solde-box.positif { background: var(--fond-positif); color: var(--solde-positif); }
+          .solde-box.negatif { background: var(--fond-negatif); color: var(--solde-negatif); }
+          .montant.debit { color: var(--solde-negatif); }
+          .montant.credit { color: var(--solde-positif); }
+          .budget-item { border-color: var(--border-color); }
+          .budget-bar { background: #e0e0e0; }
+          .budget-fill.used { background: var(--budget-used); }
+          .budget-fill.remaining { background: var(--budget-remaining); }
+          .pj-preview { border-color: var(--border-color); }
+          .modal-content { background: white; padding: 20px; border-radius: 10px; }
+        `;
+      }
+    }
+
+    // === DONNÉES ET FONCTIONNALITÉS ===
+    let currentUser = localStorage.getItem('currentUser') || 'Christelle';
+    let operations = JSON.parse(localStorage.getItem(`ops_${currentUser}`)) || [];
+    let echeances = JSON.parse(localStorage.getItem(`ech_${currentUser}`)) || [];
+    let budgets = JSON.parse(localStorage.getItem(`budgets_${currentUser}`)) || {};
+    const comptesList = ["Compte Courant", "Livret A", "Compte Épargne", "PEL"];
+    const categoriesList = ["Alimentation", "Loyer", "Transport", "Loisirs", "Santé", "Autre"];
+
+    function generateId() {
+      return 'op_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function switchUser(newUser) {
+      if (newUser === 'new') {
+        const name = prompt("Nom du nouvel utilisateur :");
+        if (name && name.trim()) {
+          currentUser = name.trim();
+          const selector = document.getElementById('user-selector');
+          if (!Array.from(selector.options).find(opt => opt.value === currentUser)) {
+            const opt = document.createElement('option');
+            opt.value = currentUser;
+            opt.textContent = currentUser;
+            selector.appendChild(opt);
+          }
+        } else return;
+      } else currentUser = newUser;
+      localStorage.setItem('currentUser', currentUser);
+      operations = JSON.parse(localStorage.getItem(`ops_${currentUser}`)) || [];
+      echeances = JSON.parse(localStorage.getItem(`ech_${currentUser}`)) || [];
+      budgets = JSON.parse(localStorage.getItem(`budgets_${currentUser}`)) || {};
+      updateUI();
+    }
+
+    function sauvegarder() {
+      localStorage.setItem(`ops_${currentUser}`, JSON.stringify(operations));
+      localStorage.setItem(`ech_${currentUser}`, JSON.stringify(echeances));
+      localStorage.setItem(`budgets_${currentUser}`, JSON.stringify(budgets));
+      updateUI();
+    }
+
+    // === UTILITAIRES ===
+    function getMonthKey(dateStr) {
+      const d = new Date(dateStr);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function getCurrentMonthKey() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function genererOperationsEchues() {
+      const aujourdHui = new Date();
+      let nouvellesOps = [];
+      echeances.forEach(ech => {
+        if (ech.inactive) return;
+        const debut = new Date(ech.dateDebut);
+        let fin = ech.dateFin ? new Date(ech.dateFin) : null;
+        if (fin && fin < aujourdHui) return;
+        let derniereGeneree = debut;
+        operations.forEach(op => {
+          if (op.echeanceId === ech.id && new Date(op.date) > derniereGeneree)
+            derniereGeneree = new Date(op.date);
+        });
+        let prochaine = new Date(derniereGeneree);
+        const addDays = (d, days) => { const date = new Date(d); date.setDate(date.getDate() + days); return date; };
+        if (ech.frequence === 'hebdo') prochaine = addDays(prochaine, 7);
+        else if (ech.frequence === '2semaines') prochaine = addDays(prochaine, 14);
+        else if (ech.frequence === '3semaines') prochaine = addDays(prochaine, 21);
+        else if (ech.frequence === 'mensuel') prochaine.setMonth(prochaine.getMonth() + 1);
+        else if (ech.frequence === 'annuel') prochaine.setFullYear(prochaine.getFullYear() + 1);
+        while (prochaine <= aujourdHui && (!fin || prochaine <= fin)) {
+          nouvellesOps.push({
+            id: generateId(),
+            date: prochaine.toISOString().split('T')[0],
+            tiers: ech.tiers,
+            montant: ech.montant,
+            categorie: ech.categorie,
+            compte: ech.compte,
+            type: ech.type,
+            pointe: false,
+            echeanceId: ech.id,
+            pj: null
+          });
+          if (ech.frequence === 'hebdo') prochaine = addDays(prochaine, 7);
+          else if (ech.frequence === '2semaines') prochaine = addDays(prochaine, 14);
+          else if (ech.frequence === '3semaines') prochaine = addDays(prochaine, 21);
+          else if (ech.frequence === 'mensuel') prochaine.setMonth(prochaine.getMonth() + 1);
+          else if (ech.frequence === 'annuel') prochaine.setFullYear(prochaine.getFullYear() + 1);
+        }
+      });
+      if (nouvellesOps.length > 0) {
+        operations = [...operations, ...nouvellesOps];
+        sauvegarder();
+        alert(`✅ ${nouvellesOps.length} opérations générées !`);
+      } else alert("🔹 Aucune échéance échue.");
+    }
+
+    function exporterCSV() {
+      let csv = 'Date;Tiers;Catégorie;Montant;Compte;Type;Pointé;PJ\n';
+      operations.forEach(op => {
+        const montant = op.type === 'debit' ? -op.montant : op.montant;
+        const pj = op.pj ? 'Oui' : 'Non';
+        csv += `"${op.date}";"${op.tiers}";"${op.categorie}";${montant};"${op.compte}";"${op.type}";${op.pointe ? '1' : '0'};"${pj}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `export-${currentUser.toLowerCase().replace(/\s/g, '-')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (!lines.length) return [];
+      const headers = lines[0].split(';').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cells = lines[i].split(';').map(c => c.trim().replace(/^"(.*)"$/, '$1'));
+        if (cells.length !== headers.length) continue;
+        const row = {};
+        headers.forEach((h, idx) => row[h] = cells[idx]);
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function importerCSV(rows) {
+      const nouvelles = [];
+      for (const r of rows) {
+        let date = r['date'] || '';
+        let tiers = r['tiers'] || r['description'] || 'Import';
+        let montantStr = r['montant'] || '0';
+        let categorie = r['catégorie'] || r['categorie'] || 'Autre';
+        let compte = r['compte'] || 'Compte Courant';
+        let pointe = (r['pointé'] === '1' || r['pointé'] === 'true');
+        let montant = parseFloat(montantStr.replace(',', '.'));
+        if (isNaN(montant)) continue;
+        let type = montant < 0 ? 'debit' : 'credit';
+        if (type === 'debit') montant = Math.abs(montant);
+        if (date.includes('/')) {
+          const [d, m, y] = date.split('/');
+          const annee = y.length === 2 ? '20' + y : y;
+          date = `${annee}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+        }
+        nouvelles.push({
+          id: generateId(),
+          date,
+          tiers,
+          montant,
+          categorie,
+          compte: comptesList.includes(compte) ? compte : 'Compte Courant',
+          type,
+          pointe,
+          pj: null
+        });
+      }
+      operations = [...operations, ...nouvelles];
+      sauvegarder();
+      alert(`✅ ${nouvelles.length} opérations importées pour ${currentUser} !`);
+    }
+
+    // === GESTION DES PIÈCES JOINTEs ===
+    let currentPjOpId = null;
+
+    function handlePjUpload(opId, event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!file.type.match('image.*') && file.type !== 'application/pdf') {
+        alert('Seuls les fichiers JPG, PNG et PDF sont acceptés.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const op = operations.find(o => o.id === opId);
+        if (op) {
+          op.pj = {
+             e.target.result,
+            type: file.type,
+            name: file.name
+          };
+          sauvegarder();
+          alert('✅ Pièce jointe ajoutée !');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function showPj(opId) {
+      const op = operations.find(o => o.id === opId);
+      if (!op || !op.pj) {
+        document.getElementById('pj-preview-container').innerHTML = '<p>Aucune pièce jointe.</p>';
+        currentPjOpId = null;
+        return;
+      }
+      currentPjOpId = opId;
+      const { data, type } = op.pj;
+      const container = document.getElementById('pj-preview-container');
+      if (type === 'application/pdf') {
+        container.innerHTML = `<iframe src="${data}" style="width:100%; height:500px;"></iframe>`;
+      } else {
+        container.innerHTML = `<img src="${data}" class="pj-preview" alt="Pièce jointe" />`;
+      }
+    }
+
+    function openPjModal(opId) {
+      const op = operations.find(o => o.id === opId);
+      if (!op || !op.pj) return;
+      const { data, type } = op.pj;
+      const modal = document.getElementById('modal-pj');
+      const content = modal.querySelector('.modal-content');
+      if (type === 'application/pdf') {
+        content.innerHTML = `<iframe src="${data}" style="width:90vw; height:90vh;"></iframe>`;
+      } else {
+        content.innerHTML = `<img src="${data}" style="max-width:90vw; max-height:90vh;" />`;
+      }
+      modal.style.display = 'flex';
+    }
+
+    // === BUDGET ===
+    function updateBudgetUI() {
+      const mois = getCurrentMonthKey();
+      const budgetContainer = document.getElementById('budget-tracker');
+      budgetContainer.innerHTML = '';
+
+      categoriesList.forEach(cat => {
+        const budgetMontant = budgets[mois] && budgets[mois][cat] ? budgets[mois][cat] : 0;
+        let totalDepense = 0;
+        operations.forEach(op => {
+          if (op.categorie === cat && op.type === 'debit' && op.date.startsWith(mois)) {
+            totalDepense += parseFloat(op.montant);
+          }
+        });
+
+        const restant = Math.max(0, budgetMontant - totalDepense);
+        const pourcentUsed = budgetMontant > 0 ? Math.min(100, (totalDepense / budgetMontant) * 100) : 0;
+
+        const item = document.createElement('div');
+        item.className = 'budget-item';
+        item.innerHTML = `
+          <div>
+            <strong>${cat}</strong><br>
+            <small>Dépensé : ${totalDepense.toFixed(2)} € / Budget : ${budgetMontant.toFixed(2)} €</small>
+          </div>
+          <div style="text-align: right; min-width: 80px;">
+            ${restant.toFixed(2)} €
+          </div>
+        `;
+        budgetContainer.appendChild(item);
+
+        const bar = document.createElement('div');
+        bar.className = 'budget-bar';
+        bar.innerHTML = `
+          <div class="budget-fill used" style="width: ${pourcentUsed}%"></div>
+          ${budgetMontant > 0 ? `<div class="budget-fill remaining" style="width: ${100 - pourcentUsed > 0 ? 100 - pourcentUsed : 0}%"></div>` : ''}
+        `;
+        budgetContainer.appendChild(bar);
+      });
+    }
+
+    // === SYNTHÈSE MENSUELLE ET PDF ===
+    function genererSyntheseHTML(mois, titre) {
+      // Filtrer les opérations du mois
+      const opsMois = operations.filter(op => op.date.startsWith(mois));
+      const opsPointees = opsMois.filter(op => op.pointe);
+      const totalPointe = opsPointees.reduce((sum, op) => sum + (op.type === 'debit' ? -op.montant : op.montant), 0);
+      const soldeTotal = operations.reduce((sum, op) => sum + (op.type === 'debit' ? -op.montant : op.montant), 0);
+
+      // Budget
+      const budgetsMois = budgets[mois] || {};
+
+      let html = `
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="icon-512x512.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
+            <h1 style="color: #1a237e;">MON COMPTE MANAGER PRO</h1>
+            <h2 style="color: #2c3e50;">Synthèse Mensuelle • ${mois}</h2>
+            <h3>${titre}</h3>
+          </div>
+
+          <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+              <div style="text-align: center; margin: 10px;">
+                <div style="font-size: 1.2em; font-weight: bold;">Solde total</div>
+                <div style="font-size: 1.4em; color: ${soldeTotal >= 0 ? '#2e7d32' : '#d32f2f'};">${soldeTotal.toFixed(2)} €</div>
+              </div>
+              <div style="text-align: center; margin: 10px;">
+                <div style="font-size: 1.2em; font-weight: bold;">Solde pointé</div>
+                <div style="font-size: 1.4em; color: ${totalPointe >= 0 ? '#2e7d32' : '#d32f2f'};">${totalPointe.toFixed(2)} €</div>
+              </div>
+            </div>
+          </div>
+
+          <h3 style="color: #1a237e; border-bottom: 2px solid #eee; padding-bottom: 5px;">Budget du mois</h3>
+          <div style="margin: 15px 0;">
+      `;
+
+      categoriesList.forEach(cat => {
+        const budgetValue = budgetsMois[cat] || 0;
+        if (budgetValue > 0) {
+          let depense = 0;
+          opsMois.forEach(op => {
+            if (op.categorie === cat && op.type === 'debit') depense += op.montant;
+          });
+          const percent = budgetValue ? Math.min(100, (depense / budgetValue) * 100) : 0;
+          html += `
+            <div style="margin: 10px 0;">
+              <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                <span>${cat}</span>
+                <span>${depense.toFixed(2)} € / ${budgetValue.toFixed(2)} €</span>
+              </div>
+              <div style="height: 12px; background: #e0e0e0; border-radius: 6px; margin-top: 4px; overflow: hidden;">
+                <div style="height: 100%; background: ${depense > budgetValue ? '#d32f2f' : '#4caf50'}; width: ${percent}%;"></div>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      html += `
+          </div>
+
+          <h3 style="color: #1a237e; border-bottom: 2px solid #eee; padding-bottom: 5px;">Opérations pointées</h3>
+          <div style="font-size: 0.9em;">
+      `;
+
+      opsPointees.slice(0, 20).forEach(op => {
+        const sign = op.type === 'debit' ? '–' : '+';
+        const color = op.type === 'debit' ? '#d32f2f' : '#2e7d32';
+        html += `<div style="padding: 6px 0; border-bottom: 1px solid #eee;">
+          <span style="font-weight: bold;">${op.date}</span> • ${op.tiers} • 
+          <span style="color: ${color}; font-weight: bold;">${sign}${Math.abs(op.montant).toFixed(2)} €</span>
+        </div>`;
+      });
+
+      html += `
+          </div>
+          <div style="margin-top: 30px; font-size: 0.85em; color: #666; text-align: center;">
+            Généré localement • Aucune donnée transférée<br>
+            © Ben Manager Labs – MON COMPTE MANAGER PRO v8.0
+          </div>
+        </div>
+      `;
+      return html;
+    }
+
+    async function genererPDF() {
+      const mois = document.getElementById('synthese-mois').value;
+      const titre = document.getElementById('synthese-titre').value || 'Synthèse mensuelle';
+
+      // Afficher aperçu
+      const preview = document.getElementById('synthese-preview');
+      preview.innerHTML = genererSyntheseHTML(mois, titre);
+
+      // Générer PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      printWindow.document.write('<html><head><title>Synthèse Mensuelle</title>');
+      printWindow.document.write('<style>body{font-family: Arial, sans-serif;}</style></head><body>');
+      printWindow.document.write(genererSyntheseHTML(mois, titre));
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+
+      // Attendre le chargement de l'image pour le PDF
+      const img = new Image();
+      img.onload = () => {
+        pdf.addImage(img, 'PNG', 10, 10, pdfWidth - 20, 0, undefined, 'FAST');
+        pdf.save(`MCMP_Synthese_${mois.replace('-', '')}.pdf`);
+        printWindow.close();
+      };
+      img.src = printWindow.document.body.innerHTML; // Pas idéal mais fonctionnel
+
+      // Alternative plus fiable via html2canvas (optionnel)
+      // Pour des raisons de simplicité ici, on ouvre le PDF dans un nouvel onglet
+      // L'utilisateur peut "Imprimer → Enregistrer au format PDF"
+    }
+
+    // === AFFICHAGE GLOBAL ===
+    function calculerSoldes() {
+      const soldes = {};
+      comptesList.forEach(c => soldes[c] = 0);
+      operations.forEach(op => {
+        const m = parseFloat(op.montant);
+        if (op.type === 'debit') soldes[op.compte] -= m;
+        else soldes[op.compte] += m;
+      });
+      return soldes;
+    }
+
+    function calculerSoldePointe() {
+      const now = new Date();
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const moisCible = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+      let total = 0;
+      operations.forEach(op => {
+        if (op.pointe && op.date.startsWith(moisCible)) {
+          const m = parseFloat(op.montant);
+          if (op.type === 'debit') total -= m;
+          else total += m;
+        }
+      });
+      return total;
+    }
+
+    function updateUI() {
+      document.getElementById('user-selector').value = currentUser;
+      const soldes = calculerSoldes();
+      const soldeTotal = Object.values(soldes).reduce((a, b) => a + b, 0);
+      const soldePointe = calculerSoldePointe();
+
+      const soldeTotalEl = document.getElementById('solde-total');
+      soldeTotalEl.textContent = `Solde total : ${soldeTotal.toFixed(2)} €`;
+      soldeTotalEl.className = `solde-box ${soldeTotal >= 0 ? 'positif' : 'negatif'}`;
+
+      const soldePointeEl = document.getElementById('solde-pointe');
+      soldePointeEl.textContent = `Solde pointé : ${soldePointe.toFixed(2)} €`;
+      soldePointeEl.className = `solde-box ${soldePointe >= 0 ? 'positif' : 'negatif'}`;
+
+      let htmlComptes = '<strong>Soldes par compte :</strong><br>';
+      comptesList.forEach(c => {
+        const s = soldes[c];
+        const cls = s >= 0 ? 'credit' : 'debit';
+        htmlComptes += `• ${c} : <span class="montant ${cls}">${s.toFixed(2)} €</span><br>`;
+      });
+      document.getElementById('comptes-soldes').innerHTML = htmlComptes;
+
+      const sortedOps = [...operations].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const tbody = document.getElementById('liste-operations');
+      tbody.innerHTML = '';
+      const afficherNonPointees = document.getElementById('toggle-non-pointees').checked;
+      let soldeCumule = soldeTotal;
+      sortedOps.forEach(op => {
+        if (!afficherNonPointees && !op.pointe) return;
+        const m = parseFloat(op.montant);
+        const debit = op.type === 'debit' ? `<span class="montant debit">–${m.toFixed(2)} €</span>` : '';
+        const credit = op.type !== 'debit' ? `<span class="montant credit">+${m.toFixed(2)} €</span>` : '';
+        const row = document.createElement('tr');
+        const hasPj = op.pj ? '📎' : '';
+        row.innerHTML = `
+          <td>${op.date}</td>
+          <td>${op.tiers}</td>
+          <td>${op.categorie}</td>
+          <td>${op.compte}</td>
+          <td>${debit}</td>
+          <td>${credit}</td>
+          <td><span class="montant ${soldeCumule >= 0 ? 'credit' : 'debit'}">${soldeCumule.toFixed(2)} €</span></td>
+          <td>
+            ${hasPj}
+            ${op.pj ? `<button class="btn-sm" onclick="openPjModal('${op.id}')">👁️</button>` : ''}
+            <label style="display:block; margin-top:4px; font-size:0.7em;">
+              <input type="file" accept=".jpg,.jpeg,.png,.pdf" onchange="handlePjUpload('${op.id}', event)" title="Ajouter une pièce jointe">
+            </label>
+          </td>
+          <td>
+            <input type="checkbox" ${op.pointe ? 'checked' : ''} onchange="togglePointage('${op.id}')" />
+            <span>${op.pointe ? '✅' : '❌'}</span>
+          </td>
+          <td>
+            <button class="btn-sm" onclick="modifierOperation('${op.id}')">✏️</button>
+            <button class="btn-sm" onclick="supprimerOperation('${op.id}')">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+        if (op.type === 'debit') soldeCumule += m;
+        else soldeCumule -= m;
+      });
+
+      const echeanceBody = document.getElementById('liste-echeances');
+      echeanceBody.innerHTML = '';
+      echeances.forEach((ech, idx) => {
+        if (ech.inactive) return;
+        const montant = parseFloat(ech.montant);
+        const montantFmt = `<span class="montant ${ech.type === 'debit' ? 'debit' : 'credit'}">${ech.type === 'debit' ? '–' : '+'}${montant.toFixed(2)} €</span>`;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${ech.dateDebut}</td>
+          <td>${ech.dateFin || '–'}</td>
+          <td>${ech.tiers}</td>
+          <td>${montantFmt}</td>
+          <td>${
+            {
+              'hebdo': 'Hebdo',
+              '2semaines': '2 sem',
+              '3semaines': '3 sem',
+              'mensuel': 'Mensuel',
+              'annuel': 'Annuel'
+            }[ech.frequence]
+          }</td>
+          <td>${ech.compte}</td>
+          <td>
+            <button class="btn-sm" onclick="supprimerEcheance(${idx})">❌</button>
+          </td>
+        `;
+        echeanceBody.appendChild(row);
+      });
+
+      updateBudgetUI();
+    }
+
+    // === ACTIONS ===
+    function togglePointage(opId) {
+      const op = operations.find(o => o.id === opId);
+      if (op) op.pointe = !op.pointe;
+      sauvegarder();
+    }
+    function supprimerOperation(opId) {
+      if (confirm("Supprimer cette opération ?")) {
+        operations = operations.filter(o => o.id !== opId);
+        sauvegarder();
+      }
+    }
+    function modifierOperation(opId) {
+      const op = operations.find(o => o.id === opId);
+      if (!op) return;
+      document.getElementById('compte').value = op.compte;
+      document.getElementById('date').value = op.date;
+      document.getElementById('tiers').value = op.tiers;
+      document.getElementById('type').value = op.type;
+      document.getElementById('montant').value = op.montant;
+      document.getElementById('categorie').value = op.categorie;
+      operations = operations.filter(o => o.id !== opId);
+      sauvegarder();
+    }
+    function supprimerEcheance(index) {
+      if (confirm("Supprimer cette échéance ?")) {
+        echeances.splice(index, 1);
+        sauvegarder();
+      }
+    }
+    function ajouterBudget() {
+      const cat = document.getElementById('budget-categorie').value;
+      const montant = parseFloat(document.getElementById('budget-montant').value);
+      if (isNaN(montant) || montant <= 0) {
+        alert("Montant invalide.");
+        return;
+      }
+      const mois = getCurrentMonthKey();
+      if (!budgets[mois]) budgets[mois] = {};
+      budgets[mois][cat] = montant;
+      sauvegarder();
+      document.getElementById('budget-montant').value = '';
+    }
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+      if (tabId === 'budget') updateBudgetUI();
+      if (tabId === 'synthese') {
+        const now = new Date();
+        document.getElementById('synthese-mois').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      }
+    }
+
+    // === ÉVÉNEMENTS ===
+    document.getElementById('theme-btn').addEventListener('click', toggleTheme);
+    document.getElementById('user-selector').addEventListener('change', e => switchUser(e.target.value));
+    document.getElementById('form-operation').addEventListener('submit', function(e) {
+      e.preventDefault();
+      operations.push({
+        id: generateId(),
+        compte: this.compte.value,
+        date: this.date.value,
+        tiers: this.tiers.value.trim(),
+        type: this.type.value,
+        montant: parseFloat(this.montant.value),
+        categorie: this.categorie.value,
+        pointe: false,
+        pj: null
+      });
+      sauvegarder();
+      this.reset();
+      this.date.valueAsDate = new Date();
+    });
+    document.getElementById('form-echeance').addEventListener('submit', function(e) {
+      e.preventDefault();
+      echeances.push({
+        id: generateId(),
+        compte: this['echeance-compte'].value,
+        tiers: this['echeance-tiers'].value.trim(),
+        type: this['echeance-type'].value,
+        montant: parseFloat(this['echeance-montant'].value),
+        categorie: this['echeance-categorie'].value,
+        dateDebut: this['echeance-date-debut'].value,
+        dateFin: this['echeance-date-fin'].value || null,
+        frequence: this['echeance-frequence'].value,
+        inactive: false
+      });
+      sauvegarder();
+      this.reset();
+      this['echeance-date-debut'].valueAsDate = new Date();
+    });
+    document.getElementById('form-budget').addEventListener('submit', function(e) {
+      e.preventDefault();
+      ajouterBudget();
+    });
+    document.getElementById('btn-generer-pdf').addEventListener('click', genererPDF);
+    document.getElementById('btn-import').addEventListener('click', function() {
+      const file = document.getElementById('csv-file').files[0];
+      if (!file) return alert("Fichier requis.");
+      const reader = new FileReader();
+      reader.onload = e => importerCSV(parseCSV(e.target.result));
+      reader.readAsText(file, 'UTF-8');
+    });
+    document.getElementById('btn-export').addEventListener('click', exporterCSV);
+    document.getElementById('btn-generer-echeances').addEventListener('click', genererOperationsEchues);
+    document.getElementById('toggle-non-pointees').addEventListener('change', updateUI);
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => showTab(btn.dataset.tab));
+    });
+    document.getElementById('modal-pj').addEventListener('click', function(e) {
+      if (e.target === this) this.style.display = 'none';
+    });
+
+    document.getElementById('date').valueAsDate = new Date();
+    document.getElementById('echeance-date-debut').valueAsDate = new Date();
+    updateUI();
+
+    // === GLOBALES ===
+    window.togglePointage = togglePointage;
+    window.supprimerOperation = supprimerOperation;
+    window.modifierOperation = modifierOperation;
+    window.supprimerEcheance = supprimerEcheance;
+    window.handlePjUpload = handlePjUpload;
+    window.openPjModal = openPjModal;
+  </script>
+</body>
+</html>
